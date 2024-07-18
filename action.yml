@@ -32,6 +32,13 @@ inputs:
   password:
     description: Original text password used to encrypt the artifact before it was uploaded to GitHub
     required: true
+  reset-retention:
+    description: >
+      If set to true, the action operates in a special mode that skips the decryption and decompression steps,
+      uploads the artifact again to GitHub and overwrites the old copy, resulting in a new artifact ID. This resets
+      the artifact's retention period and when run on a regular schedule, circumvents GitHub's artifact retention limits.
+    required: false
+    default: false
 
 runs:
   using: composite
@@ -86,6 +93,7 @@ runs:
         echo "local_name=${temp_destination}/$(ls ${temp_destination}/)" >> "$GITHUB_ENV"
 
     - name: Create Destination Directory
+      if: ${{ inputs.reset-retention == "false" }}
       shell: bash
       run: |
         if [ ! -d "${{ inputs.destination }}" ]; then
@@ -94,13 +102,25 @@ runs:
         fi
 
     - name: Decrypt and Decompress Artifact
+      if: ${{ inputs.reset-retention == "false" }}
       shell: bash
       run: |
         echo "INFO: Decrypting and decompressing artifact"
         7z x -so "$local_name" -p"${{ inputs.password }}" | tar xf - -C "${{ inputs.destination }}"
 
     - name: Check Artifact Contents
+      if: ${{ inputs.reset-retention == "false" }}
       shell: bash
       run: |
         echo "INFO: Checking artifact contents"
         ls -l "${{ inputs.destination }}"
+
+    - name: Upload Artifact
+      if: ${{ inputs.reset-retention == "true" }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.remote-name }}
+        path: ${{ env.local_name }}
+        if-no-files-found: error
+        compression-level: 0  # No compression needed as the local artifact is already compressed
+        overwrite: true

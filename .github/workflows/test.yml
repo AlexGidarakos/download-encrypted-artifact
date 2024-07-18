@@ -44,3 +44,13 @@ jobs:
           remote-name: ${{ env.remote_name }}
           destination: decrypted
           password: ${{ env.password }}
+
+      - name: Reset Artifact Retention
+        uses: ./
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          remote-name: ${{ env.remote_name }}
+          destination: decrypted2
+          password: ${{ env.password }}
+          reset-retention: true
