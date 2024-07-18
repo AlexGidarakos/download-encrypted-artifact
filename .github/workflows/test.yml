@@ -25,7 +25,7 @@ jobs:
         with:
           source: file?.txt
           password: $password
-          remote-name: $remote_name
+          remote-name: "$remote_name"
           retention-days: 2
           overwrite: true
 
