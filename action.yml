@@ -40,6 +40,14 @@ inputs:
     required: false
     default: false
 
+outputs:
+  artifact-id:
+    description: If reset-retention is true, this output will be the ID of the new artifact copy
+    value: ${{ steps.upload.outputs.artifact-id }}
+  artifact-url:
+    description: If reset-retention is true, this output will be the URL to download the new artifact copy
+    value: ${{ steps.upload.outputs.artifact-url }}
+
 runs:
   using: composite
 
@@ -50,13 +58,11 @@ runs:
         echo "DEBUG: Printing values of input variables"
         echo "${{ toJSON(inputs) }}"
 
-    - name: Set GH_TOKEN
-      shell: bash
-      run: echo "GH_TOKEN=${{ inputs.github-token }}" >> "$GITHUB_ENV"
-
     - name: Get Workflow Run ID
       id: get-workflow-run-id
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         gh_api_artifacts="/repos/${{ inputs.repository }}/actions/artifacts"
         jq_query="[.artifacts[] | select(.name==\"${{ inputs.remote-name }}\")] | sort_by(-.id).[0].workflow_run.id"
@@ -116,6 +122,7 @@ runs:
         ls -l "${{ inputs.destination }}"
 
     - name: Upload Artifact
+      id: upload
       if: ${{ inputs.reset-retention == 'true' }}
       uses: actions/upload-artifact@v4
       with:
