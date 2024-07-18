@@ -74,7 +74,7 @@ runs:
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.remote-name }}
-        path: $temp_destination
+        path: ${{ env.temp_destination }}
         github-token: ${{ inputs.github-token }}
         repository: ${{ inputs.repository }}
         run-id: ${{ steps.get-workflow-run-id.outputs.workflow_run_id }}
