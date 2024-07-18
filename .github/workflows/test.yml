@@ -46,6 +46,7 @@ jobs:
           password: ${{ env.password }}
 
       - name: Reset Artifact Retention
+        id: reset
         uses: ./
         with:
           github-token: ${{ github.token }}
@@ -54,3 +55,9 @@ jobs:
           destination: decrypted2
           password: ${{ env.password }}
           reset-retention: true
+
+      - name: Check Reset Step Outputs
+        shell: bash
+        run: |
+          echo "INFO: artifact-id is ${{ steps.reset.outputs.artifact-id }}"
+          echo "INFO: artifact-url is ${{ steps.reset.outputs.artifact-url }}"
