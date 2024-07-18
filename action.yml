@@ -93,7 +93,7 @@ runs:
         echo "local_name=${temp_destination}/$(ls ${temp_destination}/)" >> "$GITHUB_ENV"
 
     - name: Create Destination Directory
-      if: ${{ inputs.reset-retention == "false" }}
+      if: ${{ inputs.reset-retention == 'false' }}
       shell: bash
       run: |
         if [ ! -d "${{ inputs.destination }}" ]; then
@@ -102,21 +102,21 @@ runs:
         fi
 
     - name: Decrypt and Decompress Artifact
-      if: ${{ inputs.reset-retention == "false" }}
+      if: ${{ inputs.reset-retention == 'false' }}
       shell: bash
       run: |
         echo "INFO: Decrypting and decompressing artifact"
         7z x -so "$local_name" -p"${{ inputs.password }}" | tar xf - -C "${{ inputs.destination }}"
 
     - name: Check Artifact Contents
-      if: ${{ inputs.reset-retention == "false" }}
+      if: ${{ inputs.reset-retention == 'false' }}
       shell: bash
       run: |
         echo "INFO: Checking artifact contents"
         ls -l "${{ inputs.destination }}"
 
     - name: Upload Artifact
-      if: ${{ inputs.reset-retention == "true" }}
+      if: ${{ inputs.reset-retention == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.remote-name }}
