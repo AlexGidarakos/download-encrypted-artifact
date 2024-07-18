@@ -24,8 +24,8 @@ jobs:
         uses: AlexGidarakos/upload-encrypted-artifact@v1
         with:
           source: file?.txt
-          password: $password
-          remote-name: "$remote_name"
+          password: ${{ env.password }}
+          remote-name: ${{ env.remote_name }}
           retention-days: 2
           overwrite: true
 
@@ -41,6 +41,6 @@ jobs:
         with:
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          remote-name: $remote_name
+          remote-name: ${{ env.remote_name }}
           destination: decrypted
-          password: $password
+          password: ${{ env.password }}

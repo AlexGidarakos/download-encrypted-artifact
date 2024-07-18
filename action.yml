@@ -43,11 +43,14 @@ runs:
         echo "DEBUG: Printing values of input variables"
         echo "${{ toJSON(inputs) }}"
 
+    - name: Set GH_TOKEN
+      shell: bash
+      run: echo "GH_TOKEN=${{ inputs.github-token }}" >> "$GITHUB_ENV"
+
     - name: Get Workflow Run ID
       id: get-workflow-run-id
       shell: bash
       run: |
-        export GH_TOKEN="${{ inputs.github-token }}"
         gh_api_artifacts="/repos/${{ inputs.repository }}/actions/artifacts"
         jq_query="[.artifacts[] | select(.name==\"${{ inputs.remote-name }}\")] | sort_by(-.id).[0].workflow_run.id"
         echo "INFO: Getting workflow run ID of the most recent artifact"
