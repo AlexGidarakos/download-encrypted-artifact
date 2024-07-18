@@ -1,0 +1,103 @@
+name: Download Encrypted Artifact
+description: >
+  Download and decrypt artifacts previously created with upload-encrypted-artifact
+  Ref. https://github.com/AlexGidarakos/upload-encrypted-artifact
+author: Alexandros Gidarakos
+
+branding:
+  icon: unlock
+  color: green
+
+inputs:
+  github-token:
+    description: >
+      The GitHub token used to authenticate with the GitHub API.
+      This is required when downloading artifacts from a different repository or from a different workflow run.
+      If unspecified, the action will download artifacts from the current repo and the current workflow run.
+    required: false
+    default: ${{ github.token }}
+  repository:
+    description: >
+      The repository owner and the repository name joined together by "/".
+      If github-token is specified, this is the repository that artifacts will be downloaded from.
+    required: false
+    default: ${{ github.repository }}
+  remote-name:
+    description: Name of the remote artifact in GitHub
+    required: true
+  destination:
+    description: Directory where the decrypted contents of the artifact will be extracted
+    required: false
+    default: $GITHUB_WORKSPACE
+  password:
+    description: Original text password used to encrypt the artifact before it was uploaded to GitHub
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Print Inputs
+      shell: bash
+      run: |
+        echo "DEBUG: Printing values of input variables"
+        echo "${{ toJSON(inputs) }}"
+
+    - name: Get Workflow Run ID
+      id: get-workflow-run-id
+      shell: bash
+      run: |
+        GH_TOKEN="${{ inputs.github-token }}"
+        gh_api_artifacts="/repos/${{ inputs.repository }}/actions/artifacts"
+        jq_query="[.artifacts[] | select(.name==\"${{ inputs.remote-name }}\")] | sort_by(-.id).[0].workflow_run.id"
+        echo "INFO: Getting workflow run ID of the most recent artifact"
+        response="$(gh api ${gh_api_artifacts} -q ${jq_query})"
+        if [ "${response}" == "null" ]; then
+          echo "ERROR: Failed to get workflow run ID of the most recent artifact"
+          exit 1
+        else
+          echo "INFO: Workflow run ID of the most recent artifact is ${response}"
+          echo "workflow_run_id=${response}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Create Temporary Destination Directory
+      shell: bash
+      run: |
+        echo "INFO: Creating temporary destination directory"
+        temp_destination=$(mktemp -d /tmp/XXXXXXXXX)
+        echo "temp_destination=${temp_destination}" >> "$GITHUB_ENV"
+
+    - name: Download Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.remote-name }}
+        path: ${temp_destination}
+        github-token: ${{ inputs.github-token }}
+        repository: ${{ inputs.repository }}
+        run-id: ${{ steps.get-workflow-run-id.outputs.workflow_run_id }}
+
+    - name: Get Local Artifact Name
+      shell: bash
+      run: |
+        echo "INFO: Geting local artifact name"
+        echo "local_name=${temp_destination}/$(ls ${temp_destination}/)" >> "$GITHUB_ENV"
+
+    - name: Create Destination Directory
+      shell: bash
+      run: |
+        if [ ! -d "${{ inputs.destination }}" ]; then
+          echo "INFO: Creating destination directory"
+          mkdir -p "${{ inputs.destination }}"
+        fi
+
+    - name: Decrypt and Decompress Artifact
+      shell: bash
+      run: |
+        echo "INFO: Decrypting and decompressing artifact"
+        7z x -so "${local_name}" -p"${{ inputs.password }}" | tar xf - -C "${{ inputs.destination }}"
+
+    - name: Check Artifact Contents
+      shell: bash
+      run: |
+        echo "INFO: Checking artifact contents"
+        ls -l ${{ inputs.destination }}

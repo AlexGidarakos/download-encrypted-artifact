@@ -1,0 +1,46 @@
+name: Test Download
+run-name: Test Download
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  test-download:
+    name: Test Download
+    runs-on: ubuntu-latest
+    env:
+      password: supersecretpassword
+      remote_name: myartifact
+
+    steps:
+      - name: Create Mock Artifacts
+        shell: bash
+        run: |
+          echo "This is a mock artifact" > file1.txt
+          echo "This is another mock artifact" > file2.txt
+          echo "This is a third mock artifact" > file3.txt
+
+      - name: Upload Encrypted Artifact
+        uses: AlexGidarakos/upload-encrypted-artifact@v1
+        with:
+          source: file?.txt
+          password: $password
+          remote-name: $remote_name
+          retention-days: 2
+          overwrite: true
+
+      - name: Checkout Action File
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            action.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Download Encrypted Artifact
+        uses: ./
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          remote-name: $remote_name
+          destination: decrypted
+          password: $password
