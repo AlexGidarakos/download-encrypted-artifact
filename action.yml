@@ -47,7 +47,7 @@ runs:
       id: get-workflow-run-id
       shell: bash
       run: |
-        GH_TOKEN="${{ inputs.github-token }}"
+        export GH_TOKEN="${{ inputs.github-token }}"
         gh_api_artifacts="/repos/${{ inputs.repository }}/actions/artifacts"
         jq_query="[.artifacts[] | select(.name==\"${{ inputs.remote-name }}\")] | sort_by(-.id).[0].workflow_run.id"
         echo "INFO: Getting workflow run ID of the most recent artifact"
