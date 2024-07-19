@@ -1,7 +1,5 @@
 name: Download Encrypted Artifact
-description: >
-  Download and decrypt artifacts previously created with upload-encrypted-artifact
-  Ref. https://github.com/AlexGidarakos/upload-encrypted-artifact
+description: Download and decrypt artifacts previously created with upload-encrypted-artifact
 author: Alexandros Gidarakos
 
 branding:
