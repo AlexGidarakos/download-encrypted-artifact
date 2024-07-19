@@ -62,16 +62,20 @@ A composite GitHub Action that downloads and decrypts [artifacts](https://docs.g
 steps:
   - uses: AlexGidarakos/download-encrypted-artifact@v1
     with:
-      source: path/to/artifact/hello.txt
-      password: ${{ secrets.SuperSecret }}
+      github-token: ${{ github.token }}
+      repository: ${{ github.repository }}
       remote-name: my-artifact
+      destination: $GITHUB_WORKSPACE
+      password: ${{ secrets.SuperSecret }}
 ```
 
 ### Reset artifact retention period
 
 ```yaml
-- uses: AlexGidarakos/upload-encrypted-artifact@v1
-  with:
-    source: path/to/artifact/
-    password: ${{ secrets.SuperSecret }}
+steps:
+  - uses: AlexGidarakos/download-encrypted-artifact@v1
+    with:
+      remote-name: my-artifact
+      password: ${{ secrets.SuperSecret }}
+      reset-retention: true
 ```
