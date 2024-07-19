@@ -42,7 +42,7 @@ inputs:
 
 outputs:
   artifact-id:
-    description: If reset-retention is true, this output will be the ID of the new artifact copy
+    description: If reset-retention is true, this output will be the ID of the new artifact copy and can be used with the GitHub REST API
     value: ${{ steps.upload.outputs.artifact-id }}
   artifact-url:
     description: If reset-retention is true, this output will be the URL to download the new artifact copy
