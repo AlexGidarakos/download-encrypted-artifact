@@ -3,6 +3,7 @@ run-name: Test Download
 on:
   workflow_dispatch:
   push:
+    branches:
 
 jobs:
   test-download:
