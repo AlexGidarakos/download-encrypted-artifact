@@ -66,7 +66,7 @@ runs:
         jq_query="[.artifacts[] | select(.name==\"${{ inputs.remote-name }}\")] | sort_by(-.id).[0].workflow_run.id"
         echo "INFO: Getting workflow run ID of the most recent artifact"
         response=$(gh api ${gh_api_artifacts} -q "${jq_query}")
-        if [ "${response}" == "null" ]; then
+        if [ "${response}" == "null" ] || [ "${response}" == "" ]; then
           echo "ERROR: Failed to get workflow run ID of the most recent artifact"
           exit 1
         else
